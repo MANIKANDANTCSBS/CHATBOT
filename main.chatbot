@@ -1,0 +1,59 @@
+import re
+import long_responses as long
+
+
+def message_probability(user_message, recognised_words, check_all_messages, single_response=False, required_words=[]):
+    message_certainty = 0
+    has_required_words = True
+
+    for word in user_message:
+        if word in recognised_words:
+            message_certainty += 1
+
+    percentage = float(message_certainty) / float(len(recognised_words))
+
+    for word in required_words:
+        if word not in user_message:
+            has_required_words = False
+            break
+
+    if has_required_words or single_response:
+        return int(percentage * 100)
+    else:
+        return 0
+
+
+def check_all_message(message):
+    highest_prob_list = {}
+
+    def response(bot_response, list_of_words, single_response=False, required_words=[]):
+        nonlocal highest_prob_list
+        highest_prob_list[bot_response] = message_probability(message, list_of_words, check_all_message,
+                                                              single_response, required_words)
+
+    response('Hey there! How its going today ? whats up?', ['hi', 'hiiii', 'hey'], single_response=True)
+    response('Im always free .and you?', ['what', 'are', 'you', 'doing','now?' ], required_words=['how'])
+    response('Thank you!', ['i', 'love', 'code', 'palace'], required_words=['code', 'palace'])
+    response(long.R_EATING, ['what', 'you', 'eat'], required_words=['you', 'eat'])
+    response('RCB WIN THE CUP IN 2025',['when','rcb','win','the','ipl trophy'], required_words=['when', 'rcb'])
+    response('DATA SCIENCE',['what','is ','the best','course','tolearn'],required_words=['best','course'])
+    response('Im fine. what about you?', ['how','are','you'],required_words=['how','are'])
+    response('5',['how','many','trophy','csk','owned'],required_words=['trophy','csk'])
+    response('I HAVE 75% CHARGE',['how','many','percentage','you','have','charge'],required_words=['charged','many'])
+    response('I Like You', ['do','you','like','me'],required_words=['like','me'])
+    response('its a police',['who','is','prassanna'],required_words=['prasanna'])
+
+    best_match = max(highest_prob_list, key=highest_prob_list.get)
+
+
+    return long.unknown() if highest_prob_list[best_match] < 1 else best_match
+
+
+def get_response(user_input):
+    split_message = re.split(r'\s+|[,;?!.-]\s', user_input.lower())
+    response = check_all_message(split_message)
+    return response
+
+
+while True:
+    print('Bot : ' + get_response(input('you: ')))
